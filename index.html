@@ -2,107 +2,91 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeuroVita AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(to right, #000428, #004e92);
+            background: linear-gradient(to right, #1f1c2c, #928dab);
             color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        header {
-            width: 100%;
-            padding: 40px 20px;
             text-align: center;
         }
 
+        header {
+            padding: 100px 20px;
+        }
+
         h1 {
-            font-size: 3rem;
-            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            margin-bottom: 10px;
         }
 
         p {
-            font-size: 1.2rem;
-            margin-top: 10px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: 20px;
+            max-width: 700px;
+            margin: auto;
         }
 
-        .button-start {
-            margin-top: 30px;
-            background-color: #00c6ff;
-            border: none;
+        .btn {
+            margin-top: 40px;
             padding: 15px 30px;
-            font-size: 1.1rem;
-            color: white;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-
-        .button-start:hover {
-            background-color: #0072ff;
-        }
-
-        section {
-            margin-top: 80px;
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-        }
-
-        textarea, button {
-            width: 100%;
-            padding: 15px;
-            font-size: 1rem;
-            margin-top: 10px;
-            border-radius: 8px;
+            font-size: 18px;
+            background-color: #00f2fe;
+            color: black;
             border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
-        #response {
+        .btn:hover {
+            background-color: #1cc7e8;
+        }
+
+        #chat-section {
+            padding: 60px 20px;
+            background-color: #f4f4f4;
+            color: black;
+        }
+
+        textarea {
+            width: 60%;
+            height: 100px;
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+
+        button.send-btn {
             margin-top: 20px;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 10px 25px;
+            font-size: 16px;
+            background-color: #1f1c2c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
+
     <header>
-        <h1>NEUROVITA AI</h1>
-        <p>Tu inteligencia artificial para redes sociales, negocios millonarios, crecimiento personal y más. COMO TRIUNFAR EN LA VIDA AHORA MÁS FÁCIL QUE NUNCA.</p>
-        <button class="button-start" onclick="document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });">COMENZAR</button>
+        <h1>NeuroVita AI</h1>
+        <p>Tu IA para contenido viral, negocios millonarios, salud mental, vuelos baratos y más.</p>
+        <button class="btn" onclick="document.getElementById('chat-section').scrollIntoView({behavior: 'smooth'})">Comenzar</button>
     </header>
 
-    <section id="chat">
-        <h2>Escribe tu pregunta</h2>
-        <textarea id="userInput" placeholder="¿En qué puedo ayudarte hoy?"></textarea>
-        <button onclick="sendMessage()">Enviar</button>
-        <div id="response"></div>
+    <section id="chat-section">
+        <h2>Escríbele a tu IA:</h2>
+        <textarea placeholder="Escribe tu pregunta aquí..."></textarea><br>
+        <button class="send-btn">Enviar</button>
+        <p style="margin-top:20px; font-size:14px;">(La IA está en desarrollo. Pronto responderá en tiempo real 🧠)</p>
     </section>
 
-    <script>
-        async function sendMessage() {
-            const input = document.getElementById('userInput').value;
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: input })
-            });
-
-            const data = await res.json();
-            document.getElementById('response').innerText = data.response || 'Error al procesar la respuesta.';
-        }
-    </script>
 </body>
 </html>
