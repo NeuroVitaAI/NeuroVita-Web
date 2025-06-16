@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>NeuroVita AI</title>
+    <style>
+        body { font-family: Arial; background-color: #f4f4f4; padding: 40px; text-align: center; }
+        input, button { padding: 10px; margin-top: 10px; width: 80%; font-size: 16px; }
+        #respuesta { margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🧠 NeuroVita AI</h1>
+    <p>Tu inteligencia para contenido viral, negocios y crecimiento personal.</p>
+    <input type="text" id="pregunta" placeholder="Escribe tu pregunta aquí...">
+    <button onclick="enviar()">Preguntar</button>
+    <div id="respuesta"></div>
+
+    <script>
+        function enviar() {
+            const mensaje = document.getElementById('pregunta').value;
+            fetch('/preguntar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensaje })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('respuesta').innerText = data.respuesta;
+            });
+        }
+    </script>
+</body>
+</html>
