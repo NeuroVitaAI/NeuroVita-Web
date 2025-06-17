@@ -1,31 +1,49 @@
-from flask import Flask, request, jsonify, render_template
-import openai
+from flask import Flask, render_template, request, jsonify
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-openai.api_key = "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"  
 app = Flask(__name__)
 
-@app.route('/')
+# 🔧 Corrección: quitar paréntesis y usar correctamente el valor por defecto
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "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")
+
+@app.route("/")
 def home():
-    return render_template('index.html')  
+    return render_template("index.html")
 
-@app.route('/preguntar', methods=['POST'])
+@app.route("/preguntar", methods=["POST"])
 def preguntar():
-    data = request.get_json()
-    pregunta = data.get('mensaje', '')
-
     try:
-        respuesta = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Eres NeuroVita AI, una IA avanzada que podrá hablar de cualquier tema, experta en contenido viral, negocios millonarios, viajes, salud mental y crecimiento personal."},
-                {"role": "user", "content": pregunta}
-            ]
-        )
-        texto = respuesta['choices'][0]['message']['content']
-        return jsonify({"respuesta": texto.strip()})
-    except Exception as e:
-        return jsonify({"respuesta": f"Error: {str(e)}"})
+        data = request.json
+        user_message = data.get("mensaje", "")
+        if not user_message:
+            return jsonify({"respuesta": "❌ No has escrito ningún mensaje."})
 
-if __name__ == '__main__':
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        body = {
+            "model": "mistralai/mistral-7b-instruct",  # Modelo gratuito
+            "messages": [
+                {"role": "system", "content": "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes."},
+                {"role": "user", "content": user_message}
+            ]
+        }
+
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
+        respuesta = response.json()["choices"][0]["message"]["content"]
+
+        return jsonify({"respuesta": respuesta})
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"respuesta": f"❌ Error al procesar la solicitud: {str(e)}"})
+
+if __name__ == "__main__":
     app.run(debug=True)

@@ -31,6 +31,7 @@
       background-blend-mode: overlay;
       background-color: rgba(0, 0, 0, 0.7);
       text-align: center;
+      position: relative;
     }
 
     h1 {
@@ -63,25 +64,6 @@
       background-color: #00cbb4;
     }
 
-    section {
-      padding: 100px 20px;
-      background-color: #121212;
-      text-align: center;
-    }
-
-    #chatbox {
-      margin-top: 30px;
-    }
-
-    input[type="text"] {
-      width: 80%;
-      max-width: 600px;
-      padding: 15px;
-      font-size: 1em;
-      border: none;
-      border-radius: 5px;
-    }
-
     .graph {
       position: absolute;
       top: 0;
@@ -97,13 +79,56 @@
       );
       z-index: -1;
     }
+
+    section {
+      padding: 100px 20px;
+      background-color: #121212;
+      text-align: center;
+    }
+
+    #chatbox {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      max-width: 600px;
+      padding: 15px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    #respuestas {
+      width: 80%;
+      max-width: 600px;
+      text-align: left;
+    }
+
+    .mensaje {
+      background-color: #1f1f1f;
+      padding: 10px 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .neurovita {
+      background-color: #00ffe1;
+      color: #000;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="graph"></div>
     <h1>NEUROVITA AI</h1>
-    <p>Tu inteligencia artificial avanzada para crecer en redes, negocios millonarios, salud, vuelos... COMO TRIUNFAR EN LA VIDA AHORA MÁS FÁCIL QUE NUNCA.</p>
+    <p>Tu inteligencia artificial avanzada para crecer en redes, negocios, salud, vuelos... COMO TRIUNFAR EN LA VIDA AHORA MÁS FÁCIL QUE NUNCA.</p>
     <button class="btn" onclick="document.getElementById('chat').scrollIntoView({behavior: 'smooth'})">
       Comenzar
     </button>
@@ -112,8 +137,53 @@
   <section id="chat">
     <h2>Habla con NeuroVita AI</h2>
     <div id="chatbox">
-      <input type="text" placeholder="Escribe tu mensaje aquí...">
+      <input type="text" id="mensaje" placeholder="Escribe tu mensaje aquí y presiona Enter...">
+      <div id="respuestas"></div>
     </div>
   </section>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const input = document.getElementById('mensaje');
+      const respuestas = document.getElementById('respuestas');
+
+      input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          const mensaje = input.value.trim();
+          if (!mensaje) return;
+
+          // Mostrar el mensaje del usuario
+          const userMsg = document.createElement('div');
+          userMsg.classList.add('mensaje');
+          userMsg.textContent = '🧑‍💻 Tú: ' + mensaje;
+          respuestas.appendChild(userMsg);
+
+          // Enviar al backend
+          fetch('/preguntar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mensaje: mensaje })
+          })
+          .then(response => response.json())
+          .then(data => {
+            const respuesta = document.createElement('div');
+            respuesta.classList.add('mensaje', 'neurovita');
+            respuesta.textContent = '🤖 NeuroVita AI: ' + data.respuesta;
+            respuestas.appendChild(respuesta);
+            input.value = '';
+          })
+          .catch(error => {
+            const errorMsg = document.createElement('div');
+            errorMsg.classList.add('mensaje');
+            errorMsg.textContent = '❌ Error al procesar la solicitud.';
+            respuestas.appendChild(errorMsg);
+            console.error('Error:', error);
+          });
+        }
+      });
+    });
+  </script>
 </body>
 </html>
