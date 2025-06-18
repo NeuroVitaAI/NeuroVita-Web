@@ -8,8 +8,17 @@ load_dotenv()
 app = Flask(__name__)
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-if not OPENROUTER_API_KEY:
-    raise ValueError("La variable de entorno OPENROUTER_API_KEY no está definida.")
+
+def determinar_max_tokens(mensaje):
+    mensaje = mensaje.lower()
+    if any(saludo in mensaje for saludo in ["hola", "buenos días", "qué tal"]):
+        return 100  # respuestas cortas para saludos
+    elif "contenido viral" in mensaje or "ideas" in mensaje:
+        return 600  # respuestas largas para temas complejos
+    elif "negocios" in mensaje or "salud mental" in mensaje:
+        return 400  # respuestas intermedias
+    else:
+        return 300  # respuesta estándar un poco más larga
 
 @app.route("/")
 def home():
@@ -23,6 +32,8 @@ def preguntar():
         if not user_message:
             return jsonify({"respuesta": "❌ No has escrito ningún mensaje."})
 
+        max_tokens = determinar_max_tokens(user_message)
+
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json"
@@ -30,6 +41,7 @@ def preguntar():
 
         body = {
             "model": "mistralai/mistral-7b-instruct",
+            "max_tokens": max_tokens,
             "messages": [
                 {"role": "system", "content": "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes."},
                 {"role": "user", "content": user_message}
@@ -39,11 +51,8 @@ def preguntar():
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
         response_json = response.json()
 
-        print("Respuesta API completa:", response_json)
-
         if response.status_code != 200:
-            error_msg = response_json.get('error', {}).get('message') or response_json.get('message') or 'Error desconocido'
-            return jsonify({"respuesta": f"❌ Error en la API: {error_msg}"})
+            return jsonify({"respuesta": f"❌ Error en la API: {response_json.get('error', 'Error desconocido')}"})
 
         choices = response_json.get("choices")
         if not choices or not isinstance(choices, list):
@@ -61,4 +70,3 @@ def preguntar():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
