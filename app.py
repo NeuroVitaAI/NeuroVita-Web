@@ -13,14 +13,23 @@ def determinar_tokens_y_prompt(mensaje):
     msg = mensaje.lower()
     max_tokens = 300
     temperature = 0.7
-    system_msg = "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes. Responde con claridad, estructura y de forma cercana."
+    system_msg = "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes. Responde con claridad, estructura y de forma cercana, usando listas o puntos cuando sea útil."
 
-    if any(greet in msg for greet in ["hola", "buenos días", "buenas tardes", "qué tal", "buen día", "saludos"]):
+    saludos = ["hola", "buenos días", "buenas tardes", "qué tal", "buen día", "saludos"]
+    contenido_viral = ["contenido viral", "viral", "tiktok", "youtube", "ideas para contenido"]
+    negocio = ["negocio", "emprender", "empresa", "marketing", "monetizar", "finanzas"]
+    salud = ["salud mental", "estrés", "ansiedad", "bienestar", "psicología"]
+
+    if any(greet in msg for greet in saludos):
         max_tokens = 170
         system_msg = "Eres NeuroVita AI, responde saludando de forma corta, clara y cercana."
 
-    elif any(viral in msg for viral in ["contenido viral", "viral", "tiktok", "youtube", "ideas para contenido"]):
-        max_tokens = 600
+    elif any(viral in msg for viral in contenido_viral):
+        # Para preguntas muy cortas sobre viralidad, corta; para largas, larga.
+        if len(msg.split()) < 5:
+            max_tokens = 300
+        else:
+            max_tokens = 550
         system_msg = (
             "Eres NeuroVita AI, experto en contenido viral para redes sociales. "
             "Adapta la longitud de la respuesta según la pregunta: si el usuario pide consejos o ideas detalladas, da una respuesta larga y bien estructurada, "
@@ -28,19 +37,23 @@ def determinar_tokens_y_prompt(mensaje):
             "Usa listas y párrafos claros."
         )
 
-    elif any(neg in msg for neg in ["negocio", "emprender", "empresa", "marketing", "monetizar", "finanzas"]):
+    elif any(neg in msg for neg in negocio):
         max_tokens = 500
         system_msg = (
             "Eres NeuroVita AI, experto en negocios, marketing y finanzas. "
-            "Adapta la longitud de la respuesta según la pregunta, da ejemplos prácticos y estructura la respuesta."
+            "Adapta la longitud de la respuesta según la pregunta, da ejemplos prácticos y estructura la respuesta con claridad."
         )
 
-    elif any(salud in msg for salud in ["salud mental", "estrés", "ansiedad", "bienestar", "psicología"]):
+    elif any(salud in msg for salud in salud):
         max_tokens = 400
         system_msg = (
             "Eres NeuroVita AI, experto en salud mental. Responde de forma empática, clara y con consejos útiles. "
             "Adapta la longitud según la pregunta."
         )
+    else:
+        # Por defecto respuesta clara, media
+        max_tokens = 270
+        system_msg = "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes. Responde con claridad, estructura y de forma cercana."
 
     return max_tokens, temperature, system_msg
 
