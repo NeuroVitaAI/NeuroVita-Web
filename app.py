@@ -7,7 +7,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "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")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/")
 def home():
