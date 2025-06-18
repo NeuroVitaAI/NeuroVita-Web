@@ -8,6 +8,8 @@ load_dotenv()
 app = Flask(__name__)
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+if not OPENROUTER_API_KEY:
+    raise ValueError("La variable de entorno OPENROUTER_API_KEY no está definida.")
 
 @app.route("/")
 def home():
@@ -37,10 +39,11 @@ def preguntar():
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
         response_json = response.json()
 
-        print("Respuesta API completa:", response_json)  # Para depuración
+        print("Respuesta API completa:", response_json)
 
         if response.status_code != 200:
-            return jsonify({"respuesta": f"❌ Error en la API: {response_json.get('error', 'Error desconocido')}"})
+            error_msg = response_json.get('error', {}).get('message') or response_json.get('message') or 'Error desconocido'
+            return jsonify({"respuesta": f"❌ Error en la API: {error_msg}"})
 
         choices = response_json.get("choices")
         if not choices or not isinstance(choices, list):
@@ -58,3 +61,4 @@ def preguntar():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
