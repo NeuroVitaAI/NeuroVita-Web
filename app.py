@@ -9,16 +9,40 @@ app = Flask(__name__)
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-def determinar_max_tokens(mensaje):
-    mensaje = mensaje.lower()
-    if any(saludo in mensaje for saludo in ["hola", "buenos días", "qué tal"]):
-        return 100  # respuestas cortas para saludos
-    elif "contenido viral" in mensaje or "ideas" in mensaje:
-        return 600  # respuestas largas para temas complejos
-    elif "negocios" in mensaje or "salud mental" in mensaje:
-        return 400  # respuestas intermedias
-    else:
-        return 300  # respuesta estándar un poco más larga
+def determinar_tokens_y_prompt(mensaje):
+    msg = mensaje.lower()
+    max_tokens = 300
+    temperature = 0.7
+    system_msg = "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes. Responde con claridad, estructura y de forma cercana."
+
+    if any(greet in msg for greet in ["hola", "buenos días", "buenas tardes", "qué tal", "buen día", "saludos"]):
+        max_tokens = 170
+        system_msg = "Eres NeuroVita AI, responde saludando de forma corta, clara y cercana."
+
+    elif any(viral in msg for viral in ["contenido viral", "viral", "tiktok", "youtube", "ideas para contenido"]):
+        max_tokens = 600
+        system_msg = (
+            "Eres NeuroVita AI, experto en contenido viral para redes sociales. "
+            "Adapta la longitud de la respuesta según la pregunta: si el usuario pide consejos o ideas detalladas, da una respuesta larga y bien estructurada, "
+            "pero si la pregunta es corta o simple, responde de forma más breve y directa. "
+            "Usa listas y párrafos claros."
+        )
+
+    elif any(neg in msg for neg in ["negocio", "emprender", "empresa", "marketing", "monetizar", "finanzas"]):
+        max_tokens = 500
+        system_msg = (
+            "Eres NeuroVita AI, experto en negocios, marketing y finanzas. "
+            "Adapta la longitud de la respuesta según la pregunta, da ejemplos prácticos y estructura la respuesta."
+        )
+
+    elif any(salud in msg for salud in ["salud mental", "estrés", "ansiedad", "bienestar", "psicología"]):
+        max_tokens = 400
+        system_msg = (
+            "Eres NeuroVita AI, experto en salud mental. Responde de forma empática, clara y con consejos útiles. "
+            "Adapta la longitud según la pregunta."
+        )
+
+    return max_tokens, temperature, system_msg
 
 @app.route("/")
 def home():
@@ -28,11 +52,11 @@ def home():
 def preguntar():
     try:
         data = request.json
-        user_message = data.get("mensaje", "")
+        user_message = data.get("mensaje", "").strip()
         if not user_message:
             return jsonify({"respuesta": "❌ No has escrito ningún mensaje."})
 
-        max_tokens = determinar_max_tokens(user_message)
+        max_tokens, temperature, system_message = determinar_tokens_y_prompt(user_message)
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -41,24 +65,27 @@ def preguntar():
 
         body = {
             "model": "mistralai/mistral-7b-instruct",
-            "max_tokens": max_tokens,
             "messages": [
-                {"role": "system", "content": "Eres NeuroVita AI, una IA experta en negocios, salud mental y redes."},
+                {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
-            ]
+            ],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": 0.9
         }
 
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
         response_json = response.json()
 
         if response.status_code != 200:
-            return jsonify({"respuesta": f"❌ Error en la API: {response_json.get('error', 'Error desconocido')}"})
+            error_msg = response_json.get("error") or response_json.get("message") or "Error desconocido"
+            return jsonify({"respuesta": f"❌ Error en la API: {error_msg}"})
 
         choices = response_json.get("choices")
         if not choices or not isinstance(choices, list):
             return jsonify({"respuesta": "❌ La API no devolvió resultados válidos."})
 
-        respuesta = choices[0].get("message", {}).get("content", "")
+        respuesta = choices[0].get("message", {}).get("content", "").strip()
         if not respuesta:
             return jsonify({"respuesta": "❌ La API devolvió una respuesta vacía."})
 
